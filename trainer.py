@@ -20,8 +20,9 @@ from torch import nn
 from torch import optim
 from torch.backends import cudnn
 
-class Trainer():
+class Trainer:
 
+    @staticmethod
     def train(client_k, cfg, use_gpu, out_csv='train_log.csv', checkpoint=None, freeze_mode='none'):
 
         """Train a local model from a client instance.
@@ -130,6 +131,7 @@ class Trainer():
 
         return
 
+    @staticmethod
     def epochTrain(model, dataLoaderTrain, optimizer, loss, use_gpu, freeze_mode='none'):
 
         """Train a model for one epoch.
@@ -176,6 +178,7 @@ class Trainer():
         return losstrain / len(dataLoaderTrain)
 
 
+    @staticmethod
     def epochVal(model, dataLoaderVal, loss, use_gpu):
 
         """Validate a model.
@@ -221,6 +224,7 @@ class Trainer():
         return lossVal / len(dataLoaderVal), aurocMean
 
 
+    @staticmethod
     def computeAUROC(dataGT, dataPRED):
 
         """Compute Area under Receiver Operating Characteristic curve.
@@ -247,6 +251,7 @@ class Trainer():
         return outAUROC
 
 
+    @staticmethod
     def test(model, dataLoaderTest, class_idx, use_gpu, checkpoint=None):
 
         """Stand-alone function for testing a model.

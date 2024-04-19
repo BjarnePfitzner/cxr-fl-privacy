@@ -1,0 +1,44 @@
+seed: 206
+output_path: results/
+
+wandb:
+  disabled: False
+  project: CXR_Reconstruction
+  group:
+  name:
+
+data:
+  resize: 224
+  augment: False
+  front_lat: frontal
+  class_idx: [0]
+  policy: zeros
+  colour_input: L
+
+model:
+  net: DenseNet121
+  pre_trained: True
+  freeze_layers: batch_norm  # 'none', 'batch_norm', 'all_but_last', 'middle'
+  checkpoint:
+
+training:
+  optimizer: SGD
+  lr: 0.01
+  weight_decay: 1e-5
+  early_stopping_rounds: 5
+  reduce_lr_rounds: 3
+  N: 36
+  B: 10
+  E: 1
+  T: 10
+  q: 1
+  max_client_selections:
+  track_norm: False
+  weighted_avg: True
+
+dp:
+  enabled: False
+  epsilon: 3
+  max_delta: 1e-2
+  S: 0.42
+  z: 0.1

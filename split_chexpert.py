@@ -29,11 +29,13 @@ def main():
     parser.add_argument('cfg_path', type = str, help = 'Path to the config file in json format.')
     #set path to chexpert data
     parser.add_argument('--chexpert', '-d', dest='chexpert_path', help='Path to CheXpert data.', default='./')
+    parser.add_argument('--out_dir', '-o', help='Path to save split CheXpert data to', default='./data/CheXpert/')
     args = parser.parse_args()
     with open(args.cfg_path) as f:
         cfg = json.load(f)
 
     data_path = check_path(args.chexpert_path, warn_exists=False, require_exists=True)
+    out_path = check_path(args.out_dir, warn_exists=False, require_exists=False)
     random_seed = cfg['random_seed']
 
     # Read from CSV files
@@ -61,7 +63,7 @@ def main():
 
     #create CSVs
     for i in range(len(SPLIT_PERC)):
-        split_data[i].to_csv(data_path+'CheXpert-v1.0-small/'+CSV_NAMES[i], index = False)
+        split_data[i].to_csv(out_path+CSV_NAMES[i], index = False)
         print(f"Split {i}: {len(split_data[i])} images")
 
     # print(f"Train data length:", len(Traindata))
