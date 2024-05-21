@@ -11,7 +11,7 @@ import argparse
 import pandas as pd
 import random
 
-from utils import check_path
+from src.utils.io_utils import check_path
 
 #ADJUST THIS
 ORIG_CSV = 'client4.csv' #name of csv to split

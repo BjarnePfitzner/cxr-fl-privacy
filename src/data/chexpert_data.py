@@ -50,6 +50,11 @@ class CheXpertDataSet(Dataset):
                     else:
                         label[i] = 0
 
+                    if len(class_idx) == 1:
+                        # just using binary classification, true label is "No Finding", swapping labels
+                        label[i] = 1 - label[i]
+
+
                 image_names.append(data_path + image_name)
                 labels.append(label)
 

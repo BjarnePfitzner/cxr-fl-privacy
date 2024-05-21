@@ -21,8 +21,10 @@ from torch.utils.data import DataLoader
 
 #local imports
 from chexpert_data import CheXpertDataSet
-from trainer import Trainer, DenseNet121, ResNet50, Client
-from utils import check_path
+from trainer import Trainer
+from client import Client
+from models import DenseNet121, ResNet50
+from src.utils.io_utils import check_path
 
 IMAGENET_MEAN = [0.485, 0.456, 0.406]  # mean of ImageNet dataset(for normalization)
 IMAGENET_STD = [0.229, 0.224, 0.225]   # std of ImageNet dataset(for normalization)

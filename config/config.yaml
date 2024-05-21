@@ -1,5 +1,8 @@
-seed: 206
-output_path: results/
+seed: 0
+experiment_name: default
+output_path: results/${experiment_name}/
+save_model: False
+debug: False
 
 wandb:
   disabled: False
@@ -8,17 +11,18 @@ wandb:
   name:
 
 data:
+  clients: all
   resize: 224
   augment: False
   front_lat: frontal
   class_idx: [0]
   policy: zeros
-  colour_input: L
 
 model:
   net: DenseNet121
   pre_trained: True
   freeze_layers: batch_norm  # 'none', 'batch_norm', 'all_but_last', 'middle'
+  input_layer_aggregation: mean  # 'sum', 'mean', 'repeat'
   checkpoint:
 
 training:
@@ -26,15 +30,19 @@ training:
   lr: 0.01
   weight_decay: 1e-5
   early_stopping_rounds: 5
+  early_stopping_metric: mcc
   reduce_lr_rounds: 3
-  N: 36
-  B: 10
+  B: 8
   E: 1
   T: 10
-  q: 1
+  q: 0.5
   max_client_selections:
   track_norm: False
   weighted_avg: True
+
+evaluation:
+  log_local_performance: False
+  log_local_histograms: True
 
 dp:
   enabled: False
@@ -42,3 +50,8 @@ dp:
   max_delta: 1e-2
   S: 0.42
   z: 0.1
+
+
+hydra:
+  job:
+    chdir: False

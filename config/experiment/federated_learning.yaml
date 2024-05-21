@@ -1,0 +1,50 @@
+# @package _global_
+
+experiment_name: federated_learning
+save_model: False
+
+training:
+  T: 20
+
+data:
+  clients: all
+
+dp:
+  enabled: False
+
+hydra:
+  sweeper:
+    params:
+      training.B:
+        - 8
+        - 16
+        - 64
+      training.optimizer:
+        - SGD
+        - Adam
+      training.lr:
+        - 0.01
+        - 0.005
+        - 0.001
+      training.reduce_lr_rounds:
+        - 3
+        - 20
+      training.weighted_avg:
+        - True
+        - False
+      training.q:
+        - 0.1
+        - 0.25
+        - 0.5
+        - 1.0
+      model.net:
+        - DenseNet121
+        - ResNet50
+      model.freeze_layers:
+        - none
+        - batch_norm
+        - all_but_last
+      #seed:
+      #  - 0
+      #  - 1
+      #  - 2

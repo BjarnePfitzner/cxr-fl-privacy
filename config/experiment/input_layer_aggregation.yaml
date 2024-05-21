@@ -1,0 +1,30 @@
+# @package _global_
+
+experiment_name: input_layer_aggregation
+save_model: False
+
+data:
+  clients: all
+
+dp:
+  enabled: False
+
+hydra:
+  sweeper:
+    params:
+      training.B:
+        - 10
+        - 64
+      training.q:
+        - 0.25
+        - 0.5
+      model.net:
+        - DenseNet121
+        - ResNet50
+      model.input_layer_aggregation:
+        - sum
+        - mean
+        - repeat
+      training.weighted_avg:
+        - True
+        - False

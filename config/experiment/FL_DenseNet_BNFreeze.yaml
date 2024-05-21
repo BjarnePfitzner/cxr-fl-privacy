@@ -1,0 +1,53 @@
+# @package _global_
+
+experiment_name: FL_DenseNet_BNFreeze
+save_model: False
+
+training:
+  T: 20
+  q: 0.1
+  B: 16
+  weighted_avg: True
+  optimizer: SGD
+  lr: 0.01
+  reduce_lr_rounds: 20
+
+data:
+  clients: all
+
+dp:
+  enabled: False
+
+model:
+  net: DenseNet121
+  freeze_layers: batch_norm
+
+hydra:
+  sweeper:
+    params:
+      training.B:
+        - 8
+        - 16
+        - 64
+      training.optimizer:
+        - SGD
+        - Adam
+      training.lr:
+        - 0.01
+        - 0.005
+        - 0.001
+      training.reduce_lr_rounds:
+        - 3
+        - 20
+      training.weighted_avg:
+        - True
+        - False
+      training.q:
+        - 0.1
+        - 0.25
+        - 0.5
+        - 1.0
+      #seed:
+      #  - 0
+      #  - 1
+      #  - 2

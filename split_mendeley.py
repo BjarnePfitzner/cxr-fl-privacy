@@ -8,7 +8,7 @@ import argparse
 import pandas as pd
 import random
 
-from utils import check_path
+from src.utils.io_utils import check_path
 
 client_str = 'client46'
 #ADJUST THIS
