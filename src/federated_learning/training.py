@@ -40,6 +40,8 @@ def run_federated_learning(global_model, clients, use_gpu, cfg):
         return sampled_clients
 
     for global_round in range(cfg.training.T):
+        logging.info('Before starting global round')
+        logging.info(torch.cuda.memory_summary())
         logging.info(f"[[[ Round {global_round} Start ]]]")
         train_start_time = time.time()
 
@@ -84,7 +86,11 @@ def run_federated_learning(global_model, clients, use_gpu, cfg):
             client_k.model_params = client_k.model.state_dict().copy()
             client_time = round(time.time() - train_valid_start)
             logging.debug(f"<< {client_k.name} Training Time: {client_time} seconds >>")
+            logging.info('After training single client')
+            logging.info(torch.cuda.memory_summary())
 
+        logging.info('After training on clients')
+        logging.info(torch.cuda.memory_summary())
         first_cl = sel_clients[0]
         # Step 4: return updates to server
         for key in first_cl.model_params:
@@ -125,12 +131,19 @@ def run_federated_learning(global_model, clients, use_gpu, cfg):
                 # decay lr
                 cfg.training.lr = cfg.training.lr * 0.1
                 logging.info(f"Learning rate reduced to {cfg.training.lr}")
-            elif track_no_improv == cfg.training.early_stopping_rounds:
-                logging.info(f'Global AUC has not improved for {track_no_improv} rounds. Stopping training.')
-                break
+        if early_stopper.should_stop(es_val, global_model.state_dict()):
+            logging.info(f'Early stopping in round {global_round}.')
+            wandb.log({'early_stopping_round': global_round}, step=global_round)
+            # Reset model to best one
+            global_model.load_state_dict(early_stopper.get_best_model_params())
+            break
         wandb.log({'durations/validation': time.time() - validation_start_time}, step=global_round)
 
+        #if global_round % cfg.evaluation.rounds_per_eval == 0:
+        #    evaluate_model(global_model, clients, global_round, 'test', use_gpu, cfg, plot_curves=False)
+
         logging.info(f"[[[ Round {global_round} End ]]]\n")
+        torch.cuda.empty_cache()
 
     logging.info("Global model trained")
     fed_end = time.time()

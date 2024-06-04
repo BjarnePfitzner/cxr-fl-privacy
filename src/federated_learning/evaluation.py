@@ -47,17 +47,18 @@ def evaluate_model(model, clients, epoch, val_test, use_gpu, cfg, plot_curves=Fa
     }, step=epoch)
 
     for base_dataset_name in ['CXP', 'MDL']:
-        dataset_labels = np.concatenate([client_labels for client_name, client_labels in all_client_labels.items()
-                                         if base_dataset_name in client_name])
-        dataset_preds = np.concatenate([client_preds for client_name, client_preds in all_client_preds.items()
-                                        if base_dataset_name in client_name])
-        global_micro_metrics = Trainer.compute_metrics(torch.FloatTensor(dataset_labels),
-                                                       torch.FloatTensor(dataset_preds))
-        global_micro_metrics = {key: np.nanmean(np.array(val)) for key, val in global_micro_metrics.items()}
-        wandb.log({
-            f'{base_dataset_name}/micro/{val_test}_{metric_name}': metric_val
-            for metric_name, metric_val in global_micro_metrics.items()
-        }, step=epoch)
+        if any([base_dataset_name in client_name for client_name in all_client_metrics.keys()]):
+            dataset_labels = np.concatenate([client_labels for client_name, client_labels in all_client_labels.items()
+                                             if base_dataset_name in client_name])
+            dataset_preds = np.concatenate([client_preds for client_name, client_preds in all_client_preds.items()
+                                            if base_dataset_name in client_name])
+            global_micro_metrics = Trainer.compute_metrics(torch.FloatTensor(dataset_labels),
+                                                           torch.FloatTensor(dataset_preds))
+            global_micro_metrics = {key: np.nanmean(np.array(val)) for key, val in global_micro_metrics.items()}
+            wandb.log({
+                f'{base_dataset_name}/micro/{val_test}_{metric_name}': metric_val
+                for metric_name, metric_val in global_micro_metrics.items()
+            }, step=epoch)
 
     # Plot overall ROC and PRC
     if plot_curves:
@@ -88,12 +89,13 @@ def log_metrics_to_wandb(per_client_metrics, global_round, test_set_key,
         for metric_name in list(per_client_metrics.values())[0].keys()
     }
     for base_dataset_name in ['CXP', 'MDL']:
-        global_metrics_dict = {**global_metrics_dict, **{
-            f'{base_dataset_name}/macro/{test_set_key}_{metric_name}': np.nanmean(np.array(
-                [single_client_metrics[metric_name] for client_name, single_client_metrics in per_client_metrics.items()
-                 if base_dataset_name in client_name]))
-            for metric_name in list(per_client_metrics.values())[0].keys()
-        }}
+        if any([base_dataset_name in client_name for client_name in per_client_metrics.keys()]):
+            global_metrics_dict = {**global_metrics_dict, **{
+                f'{base_dataset_name}/macro/{test_set_key}_{metric_name}': np.nanmean(np.array(
+                    [single_client_metrics[metric_name] for client_name, single_client_metrics in per_client_metrics.items()
+                     if base_dataset_name in client_name]))
+                for metric_name in list(per_client_metrics.values())[0].keys()
+            }}
     wandb.log(global_metrics_dict, step=global_round)
 
     if plot_histogram:

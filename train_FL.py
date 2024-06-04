@@ -11,6 +11,7 @@ import random
 import numpy as np
 import copy
 import logging
+import warnings
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
@@ -137,7 +138,7 @@ def main(cfg: DictConfig):
                            out_size=len(cfg.data.class_idx),
                            input_layer_aggregation=cfg.model.input_layer_aggregation,
                            pre_trained=cfg.model.pre_trained).cuda()
-        # model=torch.nn.DataParallel(model).cuda()
+        #global_model = torch.nn.DataParallel(global_model).cuda()
     else:
         global_model = net(len(cfg.data.class_idx), cfg.model.input_layer_aggregation, cfg.model.pre_trained)
 
@@ -166,17 +167,20 @@ def main(cfg: DictConfig):
 
         if cfg.dp.enabled:
             # compute personal delta dependent on client's dataset size, or choose min delta value allowed
-            client_k.delta = min(cfg.dp.min_delta, 1 / client_k.n_data * 0.1)
+            client_k.delta = min(cfg.dp.max_delta, 1 / client_k.n_data * 0.1)
             logging.debug(f'Client delta: {client_k.delta}')
             # attach DP privacy engine for private training
-            client_k.privacy_engine = opacus.PrivacyEngine(client_k.model,
-                                                           target_epsilon=cfg.dp.epsilon,
-                                                           target_delta=client_k.delta,
-                                                           max_grad_norm=cfg.dp.S,
-                                                           epochs=cfg.training.max_client_selections,
-                                                           # noise_multiplier=cfg.dp.z,
-                                                           # get sample rate with respect to client's dataset
-                                                           sample_rate=min(1, cfg.training.batch_size / client_k.n_data))
+
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=UserWarning)
+                client_k.privacy_engine = opacus.PrivacyEngine(client_k.model,
+                                                               target_epsilon=cfg.dp.epsilon,
+                                                               target_delta=client_k.delta,
+                                                               max_grad_norm=cfg.dp.S,
+                                                               epochs=cfg.training.max_client_selections,
+                                                               # noise_multiplier=cfg.dp.z,
+                                                               # get sample rate with respect to client's dataset
+                                                               sample_rate=min(1, cfg.training.B / client_k.n_data))
             client_k.privacy_engine.attach(client_k.optimizer)
 
     # =========== DO FEDERATED LEARNING =============
@@ -230,7 +234,8 @@ def init_clients(data_cfg, batch_size, input_layer_aggregation, dp_training, pre
             drop_last = False
 
         cur_client.train_loader = DataLoader(dataset=cur_client.train_data, batch_size=batch_size, shuffle=True,
-                                             num_workers=4, pin_memory=True, drop_last=drop_last)
+                                             num_workers=8, persistent_workers=True, pin_memory=True,
+                                             drop_last=drop_last)
 
         val_file = path_to_client + 'client_val.csv'
         test_file = path_to_client + 'client_test.csv'
@@ -242,9 +247,9 @@ def init_clients(data_cfg, batch_size, input_layer_aggregation, dp_training, pre
                                                    colour_input=colour_input, transform=test_transform_sequence)
 
             cur_client.val_loader = DataLoader(dataset=cur_client.val_data, batch_size=128, shuffle=False,
-                                               num_workers=4, pin_memory=True)
+                                               num_workers=8, persistent_workers=True, pin_memory=True)
             cur_client.test_loader = DataLoader(dataset=cur_client.test_data, batch_size=128, shuffle=False,
-                                                num_workers=4, pin_memory=True)
+                                                num_workers=8, persistent_workers=True, pin_memory=True)
 
         else: # clients that don't
             logging.debug(f"No validation data for client{i}")

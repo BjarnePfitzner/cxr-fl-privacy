@@ -82,9 +82,11 @@ class Trainer:
             # save model to intermediate checkpoint file
             model_num = epochID + 1
             if cfg.save_model:
-                torch.save({'epoch': model_num, 'state_dict': client_k.model.state_dict(),
-                            'loss': loss_min, 'optimizer' : client_k.optimizer.state_dict()},
-                           f"{client_k.output_path}{model_num}-epoch_FL.pth.tar")
+                # todo hacky way of only saving model in epochs 0, 4 and 9
+                if any([f'round{the_round}_' in out_csv for the_round in [0, 4, 9]]):
+                    torch.save({'epoch': model_num, 'state_dict': client_k.model.state_dict(),
+                                'loss': loss_min, 'optimizer' : client_k.optimizer.state_dict()},
+                               f"{client_k.output_path}{model_num}-epoch_FL.pth.tar")
 
             # keep parameters of best model
             if lossv < loss_min:
@@ -99,19 +101,19 @@ class Trainer:
             save_val_loss.append(lossv)
             save_val_metrics.append(metrics_mean)
 
-            if cfg.dp.enabled:
-                epsilon, best_alpha = client_k.optimizer.privacy_engine.get_privacy_spent()
-                logging.debug(f"epsilon: {epsilon:.2f}, best alpha: {best_alpha}")
-                save_epsilon.append(epsilon)
-                save_alpha.append(best_alpha)
-                save_delta.append(client_k.delta)
-
             if cfg.training.track_norm:
                 # follow L2 grad norm per parameter layer
                 grad_norm = []
                 for p in list(filter(lambda p: p.grad is not None, client_k.model.parameters())):
                     cur_norm = p.grad.data.norm(2).item()
                     grad_norm.append(cur_norm)
+
+            if cfg.dp.enabled:
+                epsilon, best_alpha = client_k.privacy_engine.get_privacy_spent()
+                logging.debug(f"epsilon: {epsilon:.2f}, best alpha: {best_alpha}")
+                save_epsilon.append(epsilon)
+                save_alpha.append(best_alpha)
+                save_delta.append(client_k.delta)
 
         train_time = np.array(train_end) - np.array(train_start)
         logging.debug(f"Training time for each epoch: {train_time.round(0)} seconds")

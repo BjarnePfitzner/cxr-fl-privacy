@@ -49,8 +49,9 @@ class Client:
             if train_cfg.optimizer == "Adam":
                 self.optimizer = optim.Adam(self.model.parameters(), lr=train_cfg.lr, # setting optimizer & scheduler
                                             weight_decay=train_cfg.weight_decay)
-            if train_cfg.optimizer == "SGD":
-                self.optimizer = optim.SGD(self.model.parameters(), lr=train_cfg.lr)
+            if train_cfg.optimizer.startswith("SGD"):
+                self.optimizer = optim.SGD(self.model.parameters(), lr=train_cfg.lr,
+                                           momentum=(0.9 if train_cfg.optimizer == "SGDM" else 0.0))
         else:
             print("self.model is currently None. Optimizer cannot be initialized.")
 

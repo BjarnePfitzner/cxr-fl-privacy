@@ -4,7 +4,13 @@ experiment_name: FL_ResNet_NoFreeze
 save_model: False
 
 training:
-  T: 20
+  T: 100
+  q: 1
+  B: 8
+  weighted_avg: False
+  optimizer: SGDM
+  lr: 0.001
+  reduce_lr_rounds: 100
 
 data:
   clients: all
@@ -25,6 +31,7 @@ hydra:
         - 64
       training.optimizer:
         - SGD
+        - SGDM
         - Adam
       training.lr:
         - 0.01
@@ -32,7 +39,7 @@ hydra:
         - 0.001
       training.reduce_lr_rounds:
         - 3
-        - 20
+        - 100
       training.weighted_avg:
         - True
         - False

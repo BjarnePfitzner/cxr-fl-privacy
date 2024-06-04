@@ -43,6 +43,7 @@ training:
 evaluation:
   log_local_performance: False
   log_local_histograms: True
+  rounds_per_eval: 100
 
 dp:
   enabled: False

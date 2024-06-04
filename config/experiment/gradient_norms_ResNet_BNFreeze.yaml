@@ -1,0 +1,25 @@
+# @package _global_
+
+experiment_name: gradient_norm_test
+save_model: False
+
+seed: 1
+
+training:
+  T: 10
+  B: 16
+  E: 1
+  optimizer: SGD
+  lr: 0.005
+  reduce_lr_rounds: 100
+  track_norm: True
+
+model:
+  net: ResNet50
+  freeze_layers: batch_norm
+
+data:
+  clients: all
+
+dp:
+  enabled: False

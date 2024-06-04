@@ -37,6 +37,7 @@ if __name__ == '__main__':
                 "name": "global/macro/test_mcc",
                 "target": 1.0
             },
+            "run_cap": 150,
             "name": f"{config['experiment_name']}_{datetime.now().strftime('%d-%m_%H-%M')}",
             "parameters": params
         }
